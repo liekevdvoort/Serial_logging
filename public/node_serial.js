@@ -6,7 +6,7 @@ const max = 5;
 for (let i = 1; i <= max; i++) {
     getActiveComPort(i)
         .then(function(port) {
-            port.write('Hi port is open');
+            port.write(`X002B[290005]\r\n`);
         })
         .catch(function(error) {
             console.log(error);
