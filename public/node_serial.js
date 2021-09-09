@@ -2,10 +2,12 @@
 const SerialPort = require("serialport");
 const Readline = require("@serialport/parser-readline");
 
+// loop over max com options
 const max = 5;
 for (let i = 1; i <= max; i++) {
     getActiveComPort(i)
         .then(function(port) {
+            // set ledstrip to white
             port.write(`X002B[290005]\r\n`);
         })
         .catch(function(error) {
@@ -13,15 +15,18 @@ for (let i = 1; i <= max; i++) {
         });
 }
 
-// defining the serialPort
 function getActiveComPort(index) {
+    // create a promise to resolve or reject the function call
     return new Promise(function(resolve, reject) {
+        // create a port with the index to test
         const port = new SerialPort(`COM${index}`, { baudRate: 115200, autoOpen: false });
 
+        // if the port is opened resolve promise
         port.on('open', function() {
             resolve(port);
         });
 
+        // Try opening the port if error reject
         port.open(function (error) {
             if (error) {
                 reject(error);
@@ -29,26 +34,3 @@ function getActiveComPort(index) {
         });
     });
 }
-
-
-// definedPort.on("open", function(){
-//     console.log("open");
-//     port.write('test naar com 4 \n\r')
-// })
-
-
-
-
-// let transmitter = new SerialPort(`COM3`, {
-//     baudRate: 115200,
-// });
-
-    
-// the serial port parser
-// const parser = new Readline();
-// transmitter.pipe(parser);
-
-// read the data from the serial port
-///parser.on('data', (line) => console.log(line, 'parser.on data'));
-
-// log something if port is open
