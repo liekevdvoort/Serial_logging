@@ -72,22 +72,24 @@ async function tryComPorts(max = 5) {
 
 tryComPorts()
     .then(({ index, port }) => {
+        const parser = port.pipe(new Readline({ delimiter: "\r\n" }));
         console.log(`geopende comport ${index}`);
         // console.log("comport", port);
 
         // intitialize ledstrip with white
-        port.write(`X002B[290005]\r\n`);
+        port.write(`X002B[290000]\r\n`);
 
-        getDataFromColorSensor(port);
+        getDataFromColorSensor(parser, port);
         onSendButtonClick(port);
     })
     .catch((error) => {
         console.error(error);
     });
 
-function getDataFromColorSensor(port) {
+function getDataFromColorSensor(parser, port) {
     // get data from the color sensor
-    port.on("data", function (data) {
+    parser.on("data", function (data) {
+        console.log(data, "data");
         var msg = data.toString();
         var cleanmsg = msg.substring(
             msg.lastIndexOf("[") + 1,
@@ -123,7 +125,7 @@ function onSendButtonClick(port) {
             port.write(`X002B[12${hex_data_without_hashtag}]\r\n`);
         }, 300);
         setTimeout(() => {
-            port.write(`X002B[299205]\r\n`);
+            port.write(`X002B[299200]\r\n`);
         }, 600);
 
         hue = 999;
