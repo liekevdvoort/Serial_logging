@@ -78,49 +78,56 @@ tryComPorts()
         // intitialize ledstrip with white
         port.write(`X002B[290005]\r\n`);
 
-        // get data from the color sensor
-        port.on("data", function (data) {
-            var msg = data.toString();
-            var cleanmsg = msg.substring(
-                msg.lastIndexOf("[") + 1,
-                msg.lastIndexOf("]")
-            );
-
-            if (cleanmsg.includes("XX")) {
-                console.log("Not a clean message");
-            } else {
-                console.log(cleanmsg + "____________________");
-                cleanmsg = cleanmsg.substring(3).split(",");
-                hue_1 = parseInt(cleanmsg[0]);
-                sat_1 = parseInt(cleanmsg[1]);
-                light_1 = parseInt(cleanmsg[2]);
-                if (hue_1 > 0 && sat_1 > 0 && light_1 > 0) {
-                    hue = hue_1;
-                    sat = sat_1;
-                    light = light_1;
-                }
-            }
-        });
-
-        // when send button is clicked
-        app.post("/", function (request, response) {
-            response.sendFile(path.join(__dirname, "/", "success.html"));
-            rgb_data = request.body.rgboutput;
-            hex_data = request.body.hexoutput;
-            hex_data_without_hashtag = hex_data.slice(1);
-
-            setTimeout(() => {
-                port.write(`X002B[12${hex_data_without_hashtag}]\r\n`);
-            }, 300);
-            setTimeout(() => {
-                port.write(`X002B[299205]\r\n`);
-            }, 600);
-
-            hue = 999;
-            sat = 999;
-            light = 999;
-        });
+        getDataFromColorSensor(port);
+        onSendButtonClick(port);
     })
     .catch((error) => {
         console.error(error);
     });
+
+function getDataFromColorSensor(port) {
+    // get data from the color sensor
+    port.on("data", function (data) {
+        var msg = data.toString();
+        var cleanmsg = msg.substring(
+            msg.lastIndexOf("[") + 1,
+            msg.lastIndexOf("]")
+        );
+
+        if (cleanmsg.includes("XX")) {
+            console.log("Not a clean message");
+        } else {
+            console.log(cleanmsg + "____________________");
+            cleanmsg = cleanmsg.substring(3).split(",");
+            hue_1 = parseInt(cleanmsg[0]);
+            sat_1 = parseInt(cleanmsg[1]);
+            light_1 = parseInt(cleanmsg[2]);
+            if (hue_1 > 0 && sat_1 > 0 && light_1 > 0) {
+                hue = hue_1;
+                sat = sat_1;
+                light = light_1;
+            }
+        }
+    });
+}
+
+function onSendButtonClick(port) {
+    // when send button is clicked
+    app.post("/", function (request, response) {
+        response.sendFile(path.join(__dirname, "/", "success.html"));
+        rgb_data = request.body.rgboutput;
+        hex_data = request.body.hexoutput;
+        hex_data_without_hashtag = hex_data.slice(1);
+
+        setTimeout(() => {
+            port.write(`X002B[12${hex_data_without_hashtag}]\r\n`);
+        }, 300);
+        setTimeout(() => {
+            port.write(`X002B[299205]\r\n`);
+        }, 600);
+
+        hue = 999;
+        sat = 999;
+        light = 999;
+    });
+}
