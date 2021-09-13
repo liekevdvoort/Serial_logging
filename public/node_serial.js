@@ -1,36 +1,126 @@
 // import dependencies
 const SerialPort = require("serialport");
 const Readline = require("@serialport/parser-readline");
+const express = require("express");
+const ejs = require("ejs");
+const path = require("path");
+const http = require("http");
 
-// loop over max com options
-const max = 5;
-for (let i = 1; i <= max; i++) {
-    getActiveComPort(i)
-        .then(function(port) {
-            // set ledstrip to white
-            port.write(`X002B[290005]\r\n`);
-        })
-        .catch(function(error) {
-            console.log(error);
-        });
-}
+const app = express();
+const server = http.createServer(app);
 
-function getActiveComPort(index) {
-    // create a promise to resolve or reject the function call
-    return new Promise(function(resolve, reject) {
-        // create a port with the index to test
-        const port = new SerialPort(`COM${index}`, { baudRate: 115200, autoOpen: false });
+//init const
+const port = 3000;
+var hue = 999;
+var sat = 999;
+var light = 999;
 
-        // if the port is opened resolve promise
-        port.on('open', function() {
-            resolve(port);
+//init app
+app.use(
+    express.urlencoded({
+        extended: true,
+    })
+);
+
+app.engine("html", ejs.renderFile);
+app.set("view engine", "html");
+
+//run server
+app.listen(port, function () {
+    console.log(`Example app listening at http://localhost:${port}`);
+});
+
+//router template
+app.get("/", function (request, response) {
+    response.render(path.join(__dirname, "/", "index.html"), {
+        hue: hue,
+        sat: sat,
+        light: light,
+    });
+});
+
+function tryComPort(index) {
+    return new Promise((resolve, reject) => {
+        const port = new SerialPort(`COM${index}`, {
+            baudRate: 115200,
+            autoOpen: false,
         });
 
         // Try opening the port if error reject
-        port.open(function (error) {
+        port.open((error) => {
             if (error) {
-                reject(error);
+                return reject({ index, port, error });
             }
+        });
+
+        port.on("open", () => {
+            return resolve({ index, port });
         });
     });
 }
+
+async function tryComPorts(max = 5) {
+    for (let index = 1; index <= max; index++) {
+        try {
+            return await tryComPort(index);
+        } catch (err) {
+            //console.error(err);
+        }
+    }
+    throw new Error("Failed all attempts at COM port opening");
+}
+
+tryComPorts()
+    .then(({ index, port }) => {
+        console.log(`geopende comport ${index}`);
+        // console.log("comport", port);
+
+        // intitialize ledstrip with white
+        port.write(`X002B[290005]\r\n`);
+
+        // get data from the color sensor
+        port.on("data", function (data) {
+            var msg = data.toString();
+            var cleanmsg = msg.substring(
+                msg.lastIndexOf("[") + 1,
+                msg.lastIndexOf("]")
+            );
+
+            if (cleanmsg.includes("XX")) {
+                console.log("Not a clean message");
+            } else {
+                console.log(cleanmsg + "____________________");
+                cleanmsg = cleanmsg.substring(3).split(",");
+                hue_1 = parseInt(cleanmsg[0]);
+                sat_1 = parseInt(cleanmsg[1]);
+                light_1 = parseInt(cleanmsg[2]);
+                if (hue_1 > 0 && sat_1 > 0 && light_1 > 0) {
+                    hue = hue_1;
+                    sat = sat_1;
+                    light = light_1;
+                }
+            }
+        });
+
+        // when send button is clicked
+        app.post("/", function (request, response) {
+            response.sendFile(path.join(__dirname, "/", "success.html"));
+            rgb_data = request.body.rgboutput;
+            hex_data = request.body.hexoutput;
+            hex_data_without_hashtag = hex_data.slice(1);
+
+            setTimeout(() => {
+                port.write(`X002B[12${hex_data_without_hashtag}]\r\n`);
+            }, 300);
+            setTimeout(() => {
+                port.write(`X002B[299205]\r\n`);
+            }, 600);
+
+            hue = 999;
+            sat = 999;
+            light = 999;
+        });
+    })
+    .catch((error) => {
+        console.error(error);
+    });
