@@ -1,5 +1,5 @@
 {
-    "name": "nexmosphere-colorpicker",
+    "name": "Serial_logging",
     "version": "1.0.0",
     "description": "",
     "main": "webpack.config.js",
@@ -8,24 +8,25 @@
     },
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/liekevdvoort/nexmosphere-colorpicker.git"
+        "url": "git+https://github.com/liekevdvoort/Serial_logging.git"
     },
     "keywords": [],
     "author": "",
     "license": "ISC",
     "bugs": {
-        "url": "https://github.com/liekevdvoort/nexmosphere-colorpicker/issues"
+        "url": "https://github.com/liekevdvoort/Serial_logging/issues"
     },
-    "homepage": "https://github.com/liekevdvoort/nexmosphere-colorpicker#readme",
-    "devDependencies": {
-        "webpack": "^5.52.1",
-        "webpack-cli": "^4.8.0"
-    },
+    "homepage": "https://github.com/liekevdvoort/Serial_logging#readme",
     "dependencies": {
         "ejs": "^3.1.6",
         "express": "^4.17.1",
         "http": "0.0.1-security",
+        "parser-readline": "^1.0.2",
         "path": "^0.12.7",
         "serialport": "^9.2.1"
+    },
+    "devDependencies": {
+        "webpack": "^5.52.1",
+        "webpack-cli": "^4.8.0"
     }
 }

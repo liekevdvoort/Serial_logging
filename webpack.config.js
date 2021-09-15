@@ -6,20 +6,17 @@ module.exports = {
     devtool: "source-map",
     entry: "./public/node_serial.js",
     output: {
-        publicPath: "./",
+        path: path.join(__dirname, "dist", "build"),
+        publicPath: "/",
+        libraryTarget: "commonjs2",
         filename: "main.js",
-        path: path.resolve(__dirname, "dist"),
     },
     externals: {
-        "@brightsign/registry": "commonjs @brightsign/registry",
-        "@brightsign/storageinfo": "commonjs @brightsign/storageinfo",
-        "@brightsign/screenshot": "commonjs @brightsign/screenshot",
-        "@brightsign/messageport": "commonjs @brightsign/messageport",
-    },
-    module: {
-        noParse: function (content) {
-            return /express/.test(content);
-        },
+        express: "express",
+        // "@brightsign/registry": "commonjs @brightsign/registry",
+        // "@brightsign/storageinfo": "commonjs @brightsign/storageinfo",
+        // "@brightsign/screenshot": "commonjs @brightsign/screenshot",
+        // "@brightsign/messageport": "commonjs @brightsign/messageport",
     },
     plugins: [],
     target: "node",
