@@ -1,6 +1,6 @@
 // code Joost
 const process = require("process");
-process.chdir("/storage/sd/serial_logging");
+// process.chdir("/storage/sd/serial_logging");
 
 // import dependencies
 // const SerialPort = require("serialport");
@@ -76,64 +76,68 @@ app.get("/", function (request, response) {
 
 // tryComPorts()
 //     .then(({ index, port }) => {
-//         const parser = port.pipe(new Readline({ delimiter: "\r\n" }));
-//         console.log(`geopende comport ${index}`);
-//         // console.log("comport", port);
 
-//         // intitialize ledstrip with white
-//         port.write(`X002B[290000]\r\n`);
+const serialPort = new SerialPort("/dev/ttyUSB0", {
+    baudRate: 115200,
+});
+const parser = serialPort.pipe(new Readline({ delimiter: "\r\n" }));
+// console.log(`geopende comport ${index}`);
+// console.log("comport", port);
 
-//         getDataFromColorSensor(parser, port);
-//         onSendButtonClick(port);
-//     })
-//     .catch((error) => {
-//         console.error(error);
-//     });
+// intitialize ledstrip with white
+serialPort.write(`X002B[290000]\r\n`);
 
-// function getDataFromColorSensor(parser, port) {
-//     // get data from the color sensor
-//     parser.on("data", function (data) {
-//         console.log(data, "data");
-//         var msg = data.toString();
-//         var cleanmsg = msg.substring(
-//             msg.lastIndexOf("[") + 1,
-//             msg.lastIndexOf("]")
-//         );
+getDataFromColorSensor(parser, serialPort);
+onSendButtonClick(serialPort);
+// })
+// .catch((error) => {
+//     console.error(error);
+// });
 
-//         if (cleanmsg.includes("XX")) {
-//             console.log("Not a clean message");
-//         } else {
-//             console.log(cleanmsg + "____________________");
-//             cleanmsg = cleanmsg.substring(3).split(",");
-//             hue_1 = parseInt(cleanmsg[0]);
-//             sat_1 = parseInt(cleanmsg[1]);
-//             light_1 = parseInt(cleanmsg[2]);
-//             if (hue_1 > 0 && sat_1 > 0 && light_1 > 0) {
-//                 hue = hue_1;
-//                 sat = sat_1;
-//                 light = light_1;
-//             }
-//         }
-//     });
-// }
+function getDataFromColorSensor(parser, port) {
+    // get data from the color sensor
+    parser.on("data", function (data) {
+        console.log(data, "data");
+        var msg = data.toString();
+        var cleanmsg = msg.substring(
+            msg.lastIndexOf("[") + 1,
+            msg.lastIndexOf("]")
+        );
 
-// function onSendButtonClick(port) {
-//     // when send button is clicked
-//     app.post("/", function (request, response) {
-//         response.sendFile(path.join(__dirname, "/", "success.html"));
-//         rgb_data = request.body.rgboutput;
-//         hex_data = request.body.hexoutput;
-//         hex_data_without_hashtag = hex_data.slice(1);
+        if (cleanmsg.includes("XX")) {
+            console.log("Not a clean message");
+        } else {
+            console.log(cleanmsg + "____________________");
+            cleanmsg = cleanmsg.substring(3).split(",");
+            hue_1 = parseInt(cleanmsg[0]);
+            sat_1 = parseInt(cleanmsg[1]);
+            light_1 = parseInt(cleanmsg[2]);
+            if (hue_1 > 0 && sat_1 > 0 && light_1 > 0) {
+                hue = hue_1;
+                sat = sat_1;
+                light = light_1;
+            }
+        }
+    });
+}
 
-//         setTimeout(() => {
-//             port.write(`X002B[12${hex_data_without_hashtag}]\r\n`);
-//         }, 300);
-//         setTimeout(() => {
-//             port.write(`X002B[299200]\r\n`);
-//         }, 600);
+function onSendButtonClick(port) {
+    // when send button is clicked
+    app.post("/", function (request, response) {
+        response.sendFile(path.join(__dirname, "/", "success.html"));
+        rgb_data = request.body.rgboutput;
+        hex_data = request.body.hexoutput;
+        hex_data_without_hashtag = hex_data.slice(1);
 
-//         hue = 999;
-//         sat = 999;
-//         light = 999;
-//     });
-// }
+        setTimeout(() => {
+            port.write(`X002B[12${hex_data_without_hashtag}]\r\n`);
+        }, 300);
+        setTimeout(() => {
+            port.write(`X002B[299200]\r\n`);
+        }, 600);
+
+        hue = 999;
+        sat = 999;
+        light = 999;
+    });
+}
